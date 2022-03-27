@@ -9,7 +9,9 @@ import org.apache.hadoop.mapreduce.Counter;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
+import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
+
+import java.net.URI;
 
 
 @Log4j
@@ -21,16 +23,23 @@ public class MapReduceApplication {
             throw new RuntimeException("You should specify input and output folders!");
         }
         Configuration conf = new Configuration();
-        // задаём выходной файл, разделенный запятыми - формат CSV в соответствии с заданием
-        conf.set("mapreduce.output.textoutputformat.separator", ",");
+        conf.set("mapreduce.map.output.compress", "true");
+        conf.set("mapred.map.output.compress.codec", "org.apache.hadoop.io.compress.SnappyCodec");
 
-        Job job = Job.getInstance(conf, "browser count");
+        Job job = Job.getInstance(conf, "logs alert count");
         job.setJarByClass(MapReduceApplication.class);
         job.setMapperClass(HW1Mapper.class);
         job.setReducerClass(HW1Reducer.class);
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(IntWritable.class);
-        job.setOutputFormatClass(TextOutputFormat.class);
+        job.setOutputFormatClass(SequenceFileOutputFormat.class);
+        try {
+            job.addCacheFile(new URI("/glossary/matcher.txt"));
+        }
+        catch (Exception e) {
+            System.out.println("Failed add cache");
+            System.exit(1);
+        }
 
         Path outputDirectory = new Path(args[1]);
         FileInputFormat.addInputPath(job, new Path(args[0]));

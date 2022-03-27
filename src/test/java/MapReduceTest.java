@@ -10,6 +10,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.*;
@@ -27,6 +29,8 @@ public class MapReduceTest {
 
     private final Pattern digitCodePattern = Pattern.compile("[\\d]+-[\\d]+-[\\d]+:");
     private final Pattern linuxCodeLog = Pattern.compile("-[0-7]-");
+    private final String correctAnswer = "debug";
+
     @Before
     public void setUp() {
         HW1Mapper mapper = new HW1Mapper();
@@ -34,6 +38,9 @@ public class MapReduceTest {
         mapDriver = MapDriver.newMapDriver(mapper);
         reduceDriver = ReduceDriver.newReduceDriver(reducer);
         mapReduceDriver = MapReduceDriver.newMapReduceDriver(mapper, reducer);
+        mapDriver.addCacheFile("./matcher.txt");
+        reduceDriver.addCacheFile("./matcher.txt");
+        mapReduceDriver.addCacheFile("./matcher.txt");
         matcher = digitCodePattern.matcher(testLog);
         if (matcher.find()) {
             matcherCode = linuxCodeLog.matcher(matcher.group());
@@ -47,13 +54,13 @@ public class MapReduceTest {
     public void testMapper() throws IOException {
         mapDriver
                 .withInput(new LongWritable(), new Text(testLog))
-                .withOutput(new Text(res), new IntWritable(1))
+                .withOutput(new Text(correctAnswer), new IntWritable(1))
                 .runTest();
     }
 
     @Test
     public void testReducer() throws IOException {
-        List<IntWritable> values = new ArrayList<IntWritable>();
+        List<IntWritable> values = new ArrayList<>();
         values.add(new IntWritable(1));
         values.add(new IntWritable(1));
         reduceDriver
@@ -67,7 +74,7 @@ public class MapReduceTest {
         mapReduceDriver
                 .withInput(new LongWritable(), new Text(testLog))
                 .withInput(new LongWritable(), new Text(testLog))
-                .withOutput(new Text(res), new IntWritable(2))
+                .withOutput(new Text(correctAnswer), new IntWritable(2))
                 .runTest();
     }
 }

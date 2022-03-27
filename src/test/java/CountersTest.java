@@ -8,6 +8,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.regex.*;
 
 import static org.junit.Assert.assertEquals;
@@ -21,11 +23,13 @@ public class CountersTest {
     private final String testLog = "2023-04-28 01:50:25 AstraLinux: 17-7-9845: Quality choice onto they think cold kind coach.\n";
     private final Pattern digitCodePattern = Pattern.compile("[\\d]+-[\\d]+-[\\d]+:");
     private final Pattern linuxCodeLog = Pattern.compile("-[0-7]-");
+    private final String correctAnswer = "debug";
 
     @Before
     public void setUp() {
         HW1Mapper mapper = new HW1Mapper();
         mapDriver = MapDriver.newMapDriver(mapper);
+        mapDriver.addCacheFile("./matcher.txt");
     }
 
     @Test
@@ -50,7 +54,7 @@ public class CountersTest {
         }
         mapDriver
                 .withInput(new LongWritable(), new Text(testLog))
-                .withOutput(new Text(res), new IntWritable(1))
+                .withOutput(new Text(correctAnswer), new IntWritable(1))
                 .runTest();
         assertEquals("Expected 1 counter increment", 0, mapDriver.getCounters()
                 .findCounter(CounterType.MALFORMED).getValue());
@@ -71,7 +75,7 @@ public class CountersTest {
                 .withInput(new LongWritable(), new Text(testLog))
                 .withInput(new LongWritable(), new Text(testMalformedLog))
                 .withInput(new LongWritable(), new Text(testMalformedLog))
-                .withOutput(new Text(res), new IntWritable(1))
+                .withOutput(new Text(correctAnswer), new IntWritable(1))
                 .runTest();
 
         assertEquals("Expected 2 counter increment", 2, mapDriver.getCounters()
