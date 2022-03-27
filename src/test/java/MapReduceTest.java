@@ -1,4 +1,3 @@
-import eu.bitwalker.useragentutils.UserAgent;
 import bdtc.lab1.HW1Mapper;
 import bdtc.lab1.HW1Reducer;
 import org.apache.hadoop.io.IntWritable;
@@ -13,6 +12,7 @@ import org.junit.Test;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.*;
 
 
 public class MapReduceTest {
@@ -20,10 +20,13 @@ public class MapReduceTest {
     private MapDriver<LongWritable, Text, Text, IntWritable> mapDriver;
     private ReduceDriver<Text, IntWritable, Text, IntWritable> reduceDriver;
     private MapReduceDriver<LongWritable, Text, Text, IntWritable, Text, IntWritable> mapReduceDriver;
+    private Matcher matcher, matcherCode;
+    private String res = "";
 
-    private final String testIP = "ip1 - - [24/Apr/2011:04:06:01 -0400] \"GET /~strabal/grease/photo9/927-3.jpg HTTP/1.1\" 200 40028 \"-\" \"Mozilla/5.0 (compatible; YandexImages/3.0; +http://yandex.com/bots)\"\n";
+    private final String testLog = "2023-04-28 01:50:25 AstraLinux: 17-7-9845: Quality choice onto they think cold kind coach.\n";
 
-    private UserAgent userAgent;
+    private final Pattern digitCodePattern = Pattern.compile("[\\d]+-[\\d]+-[\\d]+:");
+    private final Pattern linuxCodeLog = Pattern.compile("-[0-7]-");
     @Before
     public void setUp() {
         HW1Mapper mapper = new HW1Mapper();
@@ -31,14 +34,20 @@ public class MapReduceTest {
         mapDriver = MapDriver.newMapDriver(mapper);
         reduceDriver = ReduceDriver.newReduceDriver(reducer);
         mapReduceDriver = MapReduceDriver.newMapReduceDriver(mapper, reducer);
-        userAgent = UserAgent.parseUserAgentString(testIP);
+        matcher = digitCodePattern.matcher(testLog);
+        if (matcher.find()) {
+            matcherCode = linuxCodeLog.matcher(matcher.group());
+            if (matcherCode.find()) {
+                res = matcherCode.group().replaceAll("[-]", "");
+            }
+        }
     }
 
     @Test
     public void testMapper() throws IOException {
         mapDriver
-                .withInput(new LongWritable(), new Text(testIP))
-                .withOutput(new Text(userAgent.getBrowser().getName()), new IntWritable(1))
+                .withInput(new LongWritable(), new Text(testLog))
+                .withOutput(new Text(res), new IntWritable(1))
                 .runTest();
     }
 
@@ -48,17 +57,17 @@ public class MapReduceTest {
         values.add(new IntWritable(1));
         values.add(new IntWritable(1));
         reduceDriver
-                .withInput(new Text(testIP), values)
-                .withOutput(new Text(testIP), new IntWritable(2))
+                .withInput(new Text(testLog), values)
+                .withOutput(new Text(testLog), new IntWritable(2))
                 .runTest();
     }
 
     @Test
     public void testMapReduce() throws IOException {
         mapReduceDriver
-                .withInput(new LongWritable(), new Text(testIP))
-                .withInput(new LongWritable(), new Text(testIP))
-                .withOutput(new Text(userAgent.getBrowser().getName()), new IntWritable(2))
+                .withInput(new LongWritable(), new Text(testLog))
+                .withInput(new LongWritable(), new Text(testLog))
+                .withOutput(new Text(res), new IntWritable(2))
                 .runTest();
     }
 }
