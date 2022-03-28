@@ -8,8 +8,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
+import org.apache.hadoop.fs.Path;
 import java.util.regex.*;
 
 import static org.junit.Assert.assertEquals;
@@ -29,7 +28,7 @@ public class CountersTest {
     public void setUp() {
         HW1Mapper mapper = new HW1Mapper();
         mapDriver = MapDriver.newMapDriver(mapper);
-        mapDriver.addCacheFile("./matcher.txt");
+        mapDriver.addCacheFile(new Path("matcher.txt").toUri());
     }
 
     @Test

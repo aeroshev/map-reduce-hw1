@@ -6,12 +6,11 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mrunit.mapreduce.MapDriver;
 import org.apache.hadoop.mrunit.mapreduce.MapReduceDriver;
 import org.apache.hadoop.mrunit.mapreduce.ReduceDriver;
+import org.apache.hadoop.fs.Path;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.*;
@@ -38,9 +37,9 @@ public class MapReduceTest {
         mapDriver = MapDriver.newMapDriver(mapper);
         reduceDriver = ReduceDriver.newReduceDriver(reducer);
         mapReduceDriver = MapReduceDriver.newMapReduceDriver(mapper, reducer);
-        mapDriver.addCacheFile("./matcher.txt");
-        reduceDriver.addCacheFile("./matcher.txt");
-        mapReduceDriver.addCacheFile("./matcher.txt");
+        mapDriver.addCacheFile(new Path("matcher.txt").toUri());
+        reduceDriver.addCacheFile(new Path("matcher.txt").toUri());
+        mapReduceDriver.addCacheFile(new Path("matcher.txt").toUri());
         matcher = digitCodePattern.matcher(testLog);
         if (matcher.find()) {
             matcherCode = linuxCodeLog.matcher(matcher.group());

@@ -25,6 +25,9 @@ public class MapReduceApplication {
         Configuration conf = new Configuration();
         conf.set("mapreduce.map.output.compress", "true");
         conf.set("mapred.map.output.compress.codec", "org.apache.hadoop.io.compress.SnappyCodec");
+        // https://stackoverflow.com/questions/17265002/hadoop-no-filesystem-for-scheme-file
+        conf.set("fs.hdfs.impl", org.apache.hadoop.hdfs.DistributedFileSystem.class.getName());
+        conf.set("fs.file.impl",org.apache.hadoop.fs.LocalFileSystem.class.getName());
 
         Job job = Job.getInstance(conf, "logs alert count");
         job.setJarByClass(MapReduceApplication.class);
@@ -34,7 +37,8 @@ public class MapReduceApplication {
         job.setOutputValueClass(IntWritable.class);
         job.setOutputFormatClass(SequenceFileOutputFormat.class);
         try {
-            job.addCacheFile(new URI("/glossary/matcher.txt"));
+
+            job.addCacheFile(new Path("/glossary/matcher.txt").toUri());
         }
         catch (Exception e) {
             System.out.println("Failed add cache");

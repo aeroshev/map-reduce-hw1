@@ -21,15 +21,13 @@ public class HW1Mapper extends Mapper<LongWritable, Text, Text, IntWritable> {
     private final Text word = new Text();
     private final Pattern digitCodePattern = Pattern.compile("[\\d]+-[\\d]+-[\\d]+:");
     private final Pattern linuxCodeLog = Pattern.compile("-[0-7]-");
-    private HashMap<String, String> wordDefineCode = null;
+    private final HashMap<String, String> wordDefineCode = new HashMap<>();
 
     @Override
     protected void setup(Context context) throws IOException, InterruptedException {
-        wordDefineCode = new HashMap<>();
-
         URI[] cacheFiles = context.getCacheFiles();
         if (cacheFiles != null && cacheFiles.length > 0) {
-            try (Stream<String> stream = Files.lines(Paths.get(cacheFiles[0]))) {
+            try (Stream<String> stream = Files.lines(Paths.get(".", cacheFiles[0].getPath()))) {
                 stream.forEach((line) -> {
                     String[] splinted = line.split("-", 2);
                     wordDefineCode.put(splinted[0], splinted[1]);
@@ -55,7 +53,12 @@ public class HW1Mapper extends Mapper<LongWritable, Text, Text, IntWritable> {
                 context.getCounter(CounterType.MALFORMED).increment(1);
             } else {
                 String linuxCode = codeMatcher.group().replaceAll("[-]", "");
-                word.set(wordDefineCode.get(linuxCode));
+                String wordCode = wordDefineCode.get(linuxCode);
+                if (wordCode != null) {
+                    word.set(wordCode);
+                } else {
+                    word.set(linuxCode);
+                }
                 context.write(word, one);
             }
         }
