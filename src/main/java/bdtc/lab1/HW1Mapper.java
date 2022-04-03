@@ -24,7 +24,10 @@ public class HW1Mapper extends Mapper<LongWritable, Text, Text, IntWritable> {
     private final HashMap<String, String> wordDefineCode = new HashMap<>();
 
     @Override
-    protected void setup(Context context) throws IOException, InterruptedException {
+    protected void setup(Context context) throws IOException {
+        /*
+        Извлечение данных из распределенного кэша на этапе настройки
+         */
         URI[] cacheFiles = context.getCacheFiles();
         if (cacheFiles != null && cacheFiles.length > 0) {
             try (Stream<String> stream = Files.lines(Paths.get(".", cacheFiles[0].getPath()))) {
